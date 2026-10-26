@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="400dp"
+        android:paddingHorizontal="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 变量区 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📌 可用变量 (Variables)"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="4dp"
+                android:textSize="14sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:text="• N：当前人员总数\n• d：天数偏移量 (今天=0, 明天=1)\n• w：周数偏移量 (本周=0, 下周=1)\n• m：月数偏移量 (本月=0, 下月=1)\n• dow：星期几 (周一=1 ... 周日=7)\n• dom：当月的第几天 (1 ~ 31)" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="16dp"
+                android:background="?attr/colorOutline" />
+
+            <!-- 函数区 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚙️ 核心函数 (Functions)"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="4dp"
+                android:textSize="14sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:text="• mod(a, b)：取模运算（求余数），结果永远为正数。\n• if(条件, 结果A, 结果B)：条件判断。条件成立返回A，否则返回B。" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="16dp"
+                android:background="?attr/colorOutline" />
+
+            <!-- 运算符区 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔣 基础运算符 (Operators)"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="4dp"
+                android:textSize="14sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:text="• 算术：+ (加)、- (减)、* (乘)、/ (除)\n• 比较：== (等于)、> (大于)、&lt; (小于)、>= (大于等于)、&lt;= (小于等于)\n• 逻辑：&amp;&amp; (且)、|| (或)" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="提示：最终计算结果需为整数，代表人员序号（如算得 1 代表 M1）。若结果越界，系统会自动进行安全映射。" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- 底部居中的按钮 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_close_help"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:minWidth="100dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:paddingLeft="0dp"
+            android:paddingRight="0dp"
+            android:text="我知道了"
+            android:textSize="14sp"
+            android:textColor="@color/action_text"
+            app:backgroundTint="@color/action_bg" />
+    </LinearLayout>
+
+</LinearLayout>
