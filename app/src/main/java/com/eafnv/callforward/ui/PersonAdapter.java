@@ -42,10 +42,15 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.VH> {
 
     public Person getItem(int position) { return data.get(position); }
 
-    // 拖拽时交换两项，并通知界面 */
+    // 拖拽时交换两项，并通知界面
     public void onMove(int from, int to) {
         Collections.swap(data, from, to);
         notifyItemMoved(from, to);
+
+        // 核心修复：强制刷新从 from 到 to 之间所有项的文本，让编号实时更新
+        int start = Math.min(from, to);
+        int end = Math.max(from, to);
+        notifyItemRangeChanged(start, end - start + 1);
     }
 
     // 拖拽结束后回调新的顺序
@@ -64,6 +69,10 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.VH> {
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         Person p = data.get(position);
+
+        // 动态显示编号
+        holder.tvPersonNumber.setText("M" + (position + 1));
+
         holder.tvName.setText(p.name);
         holder.tvNumber.setText(p.phoneNumber);
         String carrier = p.carrierOverride != null
@@ -79,13 +88,14 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.VH> {
     public int getItemCount() { return data.size(); }
 
     static class VH extends RecyclerView.ViewHolder {
-        TextView tvName, tvNumber, tvCarrier;
+        TextView tvName, tvNumber, tvCarrier, tvPersonNumber;
         ImageView ivDrag;
         VH(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tv_name);
             tvNumber = itemView.findViewById(R.id.tv_number);
             tvCarrier = itemView.findViewById(R.id.tv_carrier);
+            tvPersonNumber = itemView.findViewById(R.id.tv_person_number);
             ivDrag = itemView.findViewById(R.id.iv_drag);
         }
     }
