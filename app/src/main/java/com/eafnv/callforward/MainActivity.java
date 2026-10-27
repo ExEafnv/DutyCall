@@ -60,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
     private AppDatabase db;
     private SharedPreferences prefs;
 
+    // 排班偏移量
+    private int offsetM = 0, offsetW = 0, offsetD = 0;
+
     private TextView tvTodayPerson, tvTodayDate, tvTodayPhone;
     private TextView tvStateValue, tvStateTime;
     private MaterialButton btnAction;
@@ -87,6 +90,11 @@ public class MainActivity extends AppCompatActivity {
         db = AppDatabase.get(this);
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
 
+        // 读取偏移量
+        offsetM = prefs.getInt("offset_m", 0);
+        offsetW = prefs.getInt("offset_w", 0);
+        offsetD = prefs.getInt("offset_d", 0);
+
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         tvTodayPerson = findViewById(R.id.tv_today_person);
         tvTodayDate = findViewById(R.id.tv_today_date);
@@ -100,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, PeopleActivity.class)));
         findViewById(R.id.btn_schedule_manage).setOnClickListener(v ->
                 startActivity(new Intent(this, ScheduleActivity.class)));
+
+        // 齿轮按钮：弹出微调对话框
+        findViewById(R.id.btn_fine_tune).setOnClickListener(v -> showFineTuneDialog());
 
         // 点击状态文字或提示文字，弹出手动设置窗口
         tvStateValue.setOnClickListener(v -> showManualTransferDialog());
@@ -135,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
             List<Person> people = db.personDao().getAll();
             ScheduleVersion todayVersion = db.scheduleDao().findVersionForDay(day);
             DayOverride todayOverride = db.scheduleDao().findOverride(day);
-            Person p = ScheduleEngine.resolve(people, todayVersion, todayOverride, today);
+            Person p = ScheduleEngine.resolve(people, todayVersion, todayOverride, today, offsetM, offsetW, offsetD);
 
             List<MonthCalendarAdapter.DayItem> calendarItems = buildCalendarData(displayMonth, people);
 
@@ -185,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
 
             ScheduleVersion v = db.scheduleDao().findVersionForDay(d.toEpochDay());
             DayOverride override = db.scheduleDao().findOverride(d.toEpochDay());
-            item.person = ScheduleEngine.resolve(people, v, override, d);
+            item.person = ScheduleEngine.resolve(people, v, override, d, offsetM, offsetW, offsetD);
 
             items.add(item);
         }
@@ -441,5 +452,56 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "需要拨号权限才能执行转移", Toast.LENGTH_LONG).show();
             }
         }
+    }
+
+    // =====================================================================
+    // 排班进度微调对话框
+    // =====================================================================
+    private void showFineTuneDialog() {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_fine_tune, null);
+        TextView tvM = view.findViewById(R.id.tv_m_value);
+        TextView tvW = view.findViewById(R.id.tv_w_value);
+        TextView tvD = view.findViewById(R.id.tv_d_value);
+
+        // 临时变量，用于点击保存前不修改全局
+        final int[] tempM = {offsetM};
+        final int[] tempW = {offsetW};
+        final int[] tempD = {offsetD};
+
+        tvM.setText(String.valueOf(tempM[0]));
+        tvW.setText(String.valueOf(tempW[0]));
+        tvD.setText(String.valueOf(tempD[0]));
+
+        view.findViewById(R.id.btn_m_minus).setOnClickListener(v -> { tempM[0]--; tvM.setText(String.valueOf(tempM[0])); });
+        view.findViewById(R.id.btn_m_plus).setOnClickListener(v -> { tempM[0]++; tvM.setText(String.valueOf(tempM[0])); });
+        view.findViewById(R.id.btn_w_minus).setOnClickListener(v -> { tempW[0]--; tvW.setText(String.valueOf(tempW[0])); });
+        view.findViewById(R.id.btn_w_plus).setOnClickListener(v -> { tempW[0]++; tvW.setText(String.valueOf(tempW[0])); });
+        view.findViewById(R.id.btn_d_minus).setOnClickListener(v -> { tempD[0]--; tvD.setText(String.valueOf(tempD[0])); });
+        view.findViewById(R.id.btn_d_plus).setOnClickListener(v -> { tempD[0]++; tvD.setText(String.valueOf(tempD[0])); });
+
+        MaterialButton btnCancel = view.findViewById(R.id.btn_cancel);
+        MaterialButton btnConfirm = view.findViewById(R.id.btn_confirm);
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle("排班进度微调")
+                .setView(view)
+                .setPositiveButton(null, null)
+                .setNegativeButton(null, null)
+                .create();
+        dialog.show();
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            offsetM = tempM[0];
+            offsetW = tempW[0];
+            offsetD = tempD[0];
+            prefs.edit()
+                    .putInt("offset_m", offsetM)
+                    .putInt("offset_w", offsetW)
+                    .putInt("offset_d", offsetD)
+                    .apply();
+            dialog.dismiss();
+            loadData(); // 重新加载，日历立刻刷新
+        });
     }
 }

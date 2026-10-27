@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -31,14 +32,21 @@ import java.util.concurrent.Executors;
 
 public class ScheduleActivity extends AppCompatActivity {
 
+    private static final String PREFS = "duty_prefs";
+
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private AppDatabase db;
+    private SharedPreferences prefs;
     private SchedulePreviewAdapter adapter;
+
+    // 排班偏移量（每次 loadData 时从 prefs 重新读取）
+    private int offsetM = 0, offsetW = 0, offsetD = 0;
 
     private TextView tvRuleSummary, tvRuleDetail;
     private TextView tvPreviewTitle, tvPreviewHint, tvPreviewEmpty;
     private TextView tvCopyHint;
     private RecyclerView recyclerPreview;
+    private View cardPreview;
     private View btnDeleteRule;
 
     private List<Person> people = new ArrayList<>();
@@ -64,6 +72,7 @@ public class ScheduleActivity extends AppCompatActivity {
         // =========================
 
         db = AppDatabase.get(this);
+        prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -74,7 +83,8 @@ public class ScheduleActivity extends AppCompatActivity {
         tvPreviewTitle = findViewById(R.id.tv_preview_title);
         tvPreviewHint = findViewById(R.id.tv_preview_hint);
         tvPreviewEmpty = findViewById(R.id.tv_preview_empty);
-        recyclerPreview = findViewById(R.id.recycler_preview); // 确保取了正确的 id
+        recyclerPreview = findViewById(R.id.recycler_preview);
+        cardPreview = findViewById(R.id.card_preview);
         btnDeleteRule = findViewById(R.id.btn_delete_rule);
 
         adapter = new SchedulePreviewAdapter();
@@ -95,6 +105,11 @@ public class ScheduleActivity extends AppCompatActivity {
     }
 
     private void loadData() {
+        // 每次进页 / 返回都重新读取偏移量，保证和首页一致
+        offsetM = prefs.getInt("offset_m", 0);
+        offsetW = prefs.getInt("offset_w", 0);
+        offsetD = prefs.getInt("offset_d", 0);
+
         io.execute(() -> {
             List<Person> pList = db.personDao().getAll();
             List<ScheduleVersion> versions = db.scheduleDao().getAllVersions();
@@ -138,13 +153,11 @@ public class ScheduleActivity extends AppCompatActivity {
             }
             tvRuleDetail.setText(detail);
 
-            // 如果是自定义公式，显示查看提示并绑定点击弹窗
             if (todayVersion.mode == ScheduleMode.CUSTOM && todayVersion.extraParams != null) {
                 tvCopyHint.setVisibility(View.VISIBLE);
 
                 View.OnClickListener showDialogAction = v -> showFormulaDialog(todayVersion.extraParams);
 
-                // 点击小字和标题都能查看
                 tvCopyHint.setOnClickListener(showDialogAction);
                 tvRuleSummary.setOnClickListener(showDialogAction);
             } else {
@@ -187,7 +200,6 @@ public class ScheduleActivity extends AppCompatActivity {
         tvContent.setOnClickListener(v -> {
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastClickTime[0] < 500) {
-                // 500ms 内两次点击视为双击
                 android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
                 android.content.ClipData clip = android.content.ClipData.newPlainText("DutyCall Formula", formula);
                 if (clipboard != null) {
@@ -230,7 +242,7 @@ public class ScheduleActivity extends AppCompatActivity {
 
                 Person p = null;
                 if (v != null) {
-                    p = ScheduleEngine.resolve(peopleSnapshot, v, override, date);
+                    p = ScheduleEngine.resolve(peopleSnapshot, v, override, date, offsetM, offsetW, offsetD);
                 } else if (override != null) {
                     for (Person person : peopleSnapshot) {
                         if (person.id == override.personId) { p = person; break; }
@@ -258,6 +270,9 @@ public class ScheduleActivity extends AppCompatActivity {
         tvPreviewTitle.setVisibility(empty ? View.GONE : View.VISIBLE);
         tvPreviewHint.setVisibility(empty ? View.GONE : View.VISIBLE);
         recyclerPreview.setVisibility(empty ? View.GONE : View.VISIBLE);
+
+        // 核心修复：当列表为空时，把卡片外壳也一起隐藏
+        cardPreview.setVisibility(empty ? View.GONE : View.VISIBLE);
     }
 
     private void confirmDeleteAll() {

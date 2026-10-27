@@ -24,7 +24,7 @@
         android:fillViewport="true"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:paddingTop="16dp"
+        android:paddingTop="0dp"
         android:paddingBottom="24dp">
 
         <!-- 开启防裁剪 -->
@@ -264,6 +264,17 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@drawable/ic_arrow_right"
                             app:tint="?attr/colorPrimary" />
+
+                        <ImageView
+                            android:id="@+id/btn_fine_tune"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_marginEnd="8dp"
+                            android:padding="6dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@android:drawable/ic_menu_preferences"
+                            app:tint="?attr/colorPrimary" />
+
                     </LinearLayout>
 
                     <LinearLayout

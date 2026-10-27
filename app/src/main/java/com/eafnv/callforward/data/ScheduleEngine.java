@@ -59,7 +59,8 @@ public class ScheduleEngine {
 
     // =====================================================================
 
-    public static Person resolve(List<Person> people, ScheduleVersion version, DayOverride override, LocalDate date) {
+    public static Person resolve(List<Person> people, ScheduleVersion version, DayOverride override, LocalDate date,
+                                 int offsetM, int offsetW, int offsetD) {
         if (people == null || people.isEmpty()) return null;
 
         if (override != null) {
@@ -67,17 +68,18 @@ public class ScheduleEngine {
                 if (p.id == override.personId) return p;
             }
         }
-        return computeByRule(people, version, date);
+        return computeByRule(people, version, date, offsetM, offsetW, offsetD);
     }
 
-    public static Person computeByRule(List<Person> people, ScheduleVersion version, LocalDate date) {
+    public static Person computeByRule(List<Person> people, ScheduleVersion version, LocalDate date,
+                                       int offsetM, int offsetW, int offsetD) {
         if (people == null || people.isEmpty()) return null;
         if (version == null) return null;
 
         int index;
         switch (version.mode) {
             case ScheduleMode.CUSTOM:
-                index = computeCustomIndex(people, version, date);
+                index = computeCustomIndex(people, version, date, offsetM, offsetW, offsetD);
                 break;
             case ScheduleMode.WEEKLY:
             default:
@@ -88,15 +90,17 @@ public class ScheduleEngine {
         return people.get(index);
     }
 
-    // ===== 模式 2：自定义公式 =====
-    static int computeCustomIndex(List<Person> people, ScheduleVersion v, LocalDate date) {
+    // ===== 模式 4：自定义公式 =====
+    static int computeCustomIndex(List<Person> people, ScheduleVersion v, LocalDate date,
+                                  int offsetM, int offsetW, int offsetD) {
         if (v.extraParams == null || v.extraParams.trim().isEmpty()) return 0;
         int N = people.size();
         LocalDate anchor = LocalDate.ofEpochDay(v.anchorMondayEpochDay);
 
-        long d = ChronoUnit.DAYS.between(anchor, date);
-        long w = ChronoUnit.WEEKS.between(anchor.with(DayOfWeek.MONDAY), date.with(DayOfWeek.MONDAY));
-        long m = ChronoUnit.MONTHS.between(anchor.withDayOfMonth(1), date.withDayOfMonth(1));
+        // 应用偏移量
+        long d = ChronoUnit.DAYS.between(anchor, date) + offsetD;
+        long w = ChronoUnit.WEEKS.between(anchor.with(DayOfWeek.MONDAY), date.with(DayOfWeek.MONDAY)) + offsetW;
+        long m = ChronoUnit.MONTHS.between(anchor.withDayOfMonth(1), date.withDayOfMonth(1)) + offsetM;
         int dow = date.getDayOfWeek().getValue();
         int dom = date.getDayOfMonth();
 
@@ -130,7 +134,6 @@ public class ScheduleEngine {
         }
         try {
             Expression expr = new Expression(formula, CUSTOM_CONFIG);
-            // 测试公式是否能跑通
             expr.with("N", N).with("n", N)
                     .with("d", 1).with("D", 1)
                     .with("w", 1).with("W", 1)
@@ -138,11 +141,9 @@ public class ScheduleEngine {
                     .with("dow", 1).with("DOW", 1)
                     .with("dom", 1).with("DOM", 1);
 
-            // 如果没有抛异常，说明语法和变量都没问题
             expr.evaluate();
             return null;
         } catch (Exception e) {
-            // 捕获并返回具体的错误信息（如：括号不匹配、未知的变量名等）
             String msg = e.getMessage();
             if (msg == null) msg = e.getClass().getSimpleName();
             return msg;

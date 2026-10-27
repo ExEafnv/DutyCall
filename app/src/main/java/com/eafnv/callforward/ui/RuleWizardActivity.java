@@ -1,6 +1,7 @@
 package com.eafnv.callforward.ui;
 
 import android.app.DatePickerDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -36,9 +37,12 @@ import java.util.concurrent.Executors;
 
 public class RuleWizardActivity extends AppCompatActivity {
 
+    private static final String PREFS = "duty_prefs";
+
     private final ExecutorService io = Executors.newSingleThreadExecutor();
 
     private AppDatabase db;
+    private SharedPreferences prefs;
     private List<Person> people = new ArrayList<>();
 
     private int step = 0; // 0..3
@@ -68,6 +72,7 @@ public class RuleWizardActivity extends AppCompatActivity {
         }
 
         db = AppDatabase.get(this);
+        prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -310,6 +315,11 @@ public class RuleWizardActivity extends AppCompatActivity {
     }
 
     private void refreshPreview() {
+        // 每次刷新预览都读取最新偏移量，保证和首页 / 排班页一致
+        int offsetM = prefs.getInt("offset_m", 0);
+        int offsetW = prefs.getInt("offset_w", 0);
+        int offsetD = prefs.getInt("offset_d", 0);
+
         ScheduleVersion v = buildVersionForPreview();
         List<SchedulePreviewAdapter.Row> rows = new ArrayList<>();
         LocalDate start = LocalDate.now();
@@ -317,7 +327,7 @@ public class RuleWizardActivity extends AppCompatActivity {
             LocalDate date = start.plusDays(i);
             SchedulePreviewAdapter.Row row = new SchedulePreviewAdapter.Row();
             row.date = date;
-            row.person = ScheduleEngine.computeByRule(people, v, date);
+            row.person = ScheduleEngine.computeByRule(people, v, date, offsetM, offsetW, offsetD);
             row.isToday = i == 0;
             rows.add(row);
         }
