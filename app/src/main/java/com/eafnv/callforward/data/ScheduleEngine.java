@@ -15,12 +15,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 排班解析引擎：把某一天的日期换算成具体的值班人。
+ *
+ * 计算全是纯函数，不读数据库，日历批量推算多天时可以直接调用。
+ */
 public class ScheduleEngine {
 
-    // =====================================================================
-    // 公式引擎的静态内部类与配置
-    // =====================================================================
+    // ===== 公式引擎的静态内部类与配置 =====
 
+    /** 表达式里的 mod(a, b)，返回非负余数。 */
     @FunctionParameter(name = "a")
     @FunctionParameter(name = "b")
     static class ModFunction extends AbstractFunction {
@@ -32,6 +36,7 @@ public class ScheduleEngine {
         }
     }
 
+    /** 表达式里的 if(条件, 真值, 假值)，只求值命中的那个分支。 */
     @FunctionParameter(name = "condition")
     @FunctionParameter(name = "resultIfTrue", isLazy = true)
     @FunctionParameter(name = "resultIfFalse", isLazy = true)
@@ -51,14 +56,20 @@ public class ScheduleEngine {
         }
     }
 
+    /** 公式引擎配置，在默认语法上注册 mod 与 if 两个函数。 */
     private static final ExpressionConfiguration CUSTOM_CONFIG = ExpressionConfiguration.defaultConfiguration()
             .withAdditionalFunctions(
                     Map.entry("mod", new ModFunction()), Map.entry("MOD", new ModFunction()),
                     Map.entry("if", new IfFunction()), Map.entry("IF", new IfFunction())
             );
 
-    // =====================================================================
+    // ===== 对外解析入口 =====
 
+    /**
+     * 解析某一天的值班人：单日换班优先，没有覆盖再按排班规则算。
+     *
+     * @return 当天值班人，无人员可排时返回 null
+     */
     public static Person resolve(List<Person> people, ScheduleVersion version, DayOverride override, LocalDate date,
                                  int offsetM, int offsetW, int offsetD) {
         if (people == null || people.isEmpty()) return null;
@@ -71,6 +82,7 @@ public class ScheduleEngine {
         return computeByRule(people, version, date, offsetM, offsetW, offsetD);
     }
 
+    /** 按版本里的模式分派到对应的算法，下标越界时回落到第一个人。 */
     public static Person computeByRule(List<Person> people, ScheduleVersion version, LocalDate date,
                                        int offsetM, int offsetW, int offsetD) {
         if (people == null || people.isEmpty()) return null;
@@ -91,13 +103,20 @@ public class ScheduleEngine {
     }
 
     // ===== 模式 4：自定义公式 =====
+    /**
+     * 模式 4：用自定义公式算出下标。
+     *
+     * 偏移量已经加进 d、w、m，公式里拿到的就是偏移后的值。
+     *
+     * @return 人数范围内的下标，公式出错时退回 0
+     */
     static int computeCustomIndex(List<Person> people, ScheduleVersion v, LocalDate date,
                                   int offsetM, int offsetW, int offsetD) {
         if (v.extraParams == null || v.extraParams.trim().isEmpty()) return 0;
         int N = people.size();
         LocalDate anchor = LocalDate.ofEpochDay(v.anchorMondayEpochDay);
 
-        // 应用偏移量
+        // 应用偏移量。
         long d = ChronoUnit.DAYS.between(anchor, date) + offsetD;
         long w = ChronoUnit.WEEKS.between(anchor.with(DayOfWeek.MONDAY), date.with(DayOfWeek.MONDAY)) + offsetW;
         long m = ChronoUnit.MONTHS.between(anchor.withDayOfMonth(1), date.withDayOfMonth(1)) + offsetM;
@@ -119,15 +138,20 @@ public class ScheduleEngine {
 
             return Math.floorMod(val - 1, N);
         } catch (Exception e) {
+            // 公式写错时退回第一个人，避免整个日历都算不出来。
             e.printStackTrace();
             return 0;
         }
     }
 
-    // =====================================================================
-    // 校验公式正确性
-    // @return 如果正确返回 null；如果有错误返回错误提示信息
-    // =====================================================================
+    // ===== 公式校验 =====
+    /**
+     * 校验表达式在给定人数下能否正常求值。
+     *
+     * @param formula 待校验的表达式
+     * @param N 参与排班的人数
+     * @return 校验通过返回 null，否则返回错误提示信息
+     */
     public static String validateFormula(String formula, int N) {
         if (formula == null || formula.trim().isEmpty()) {
             return "公式不能为空";
@@ -151,6 +175,11 @@ public class ScheduleEngine {
     }
 
     // ===== 模式 1：通用每周轮转 =====
+    /**
+     * 模式 1：通用轮转，按锚点周与锚点人推算下标。
+     *
+     * @return 人数范围内的下标
+     */
     static int computeWeeklyIndex(List<Person> people, ScheduleVersion v, LocalDate date) {
         int N = people.size();
         int anchorIdx = indexOf(people, v.anchorPersonId);
@@ -164,6 +193,7 @@ public class ScheduleEngine {
         return Math.floorMod((int) (anchorIdx + weeks + t), N);
     }
 
+    /** 按 id 找人员在列表中的下标，找不到返回 -1。 */
     public static int indexOf(List<Person> people, long personId) {
         for (int i = 0; i < people.size(); i++) {
             if (people.get(i).id == personId) return i;

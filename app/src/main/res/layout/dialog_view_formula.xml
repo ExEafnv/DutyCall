@@ -11,54 +11,70 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="300dp"
+        android:maxHeight="260dp"
         android:paddingHorizontal="24dp">
 
-        <TextView
-            android:id="@+id/tv_formula_content"
+        <EditText
+            android:id="@+id/et_formula_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
             android:background="?attr/colorSurfaceVariant"
             android:fontFamily="monospace"
-            android:textSize="15sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="top|start"
+            android:inputType="textMultiLine"
             android:lineSpacingExtra="4dp"
-            android:text="mod(d, N) + 1" />
+            android:minHeight="72dp"
+            android:padding="16dp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="15sp" />
     </ScrollView>
 
     <TextView
+        android:id="@+id/tv_formula_hint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:textSize="12sp"
-        android:textColor="?android:attr/textColorSecondary"
         android:gravity="center"
-        android:text="提示：双击上方公式文本可快速复制" />
+        android:text="单击可编辑 · 双击复制"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="12sp" />
 
-    <!-- 底部居中的按钮 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_close"
-            android:layout_width="wrap_content"
+            style="@style/Widget.DutyCall.Button.Secondary"
+            android:layout_width="0dp"
             android:layout_height="40dp"
-            android:minWidth="100dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
-            android:paddingLeft="0dp"
-            android:paddingRight="0dp"
+            android:layout_weight="1"
             android:text="关闭"
-            android:textSize="14sp"
-            android:textColor="@color/action_text"
-            app:backgroundTint="@color/action_bg" />
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_replace"
+            style="@style/Widget.DutyCall.Button.Secondary"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="更换"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save"
+            style="@style/Widget.DutyCall.Button.Primary"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="保存"
+            android:textSize="14sp" />
     </LinearLayout>
 
 </LinearLayout>

@@ -21,4 +21,21 @@
     <color name="action_bg">#006A6A</color>
     <color name="action_text">#FFFFFF</color>
     <color name="app_bg">#D8E2E2</color>
+    <color name="issue_bg">#1A006A6A</color>
+    <color name="destructive_bg">#1FBA1A1A</color>
+    <color name="btn_secondary">#A9CFCD</color>
+    <color name="btn_secondary_text">#00201F</color>
+    <color name="btn_secondary_disabled">#FFC3D8D6</color>
+    <color name="btn_secondary_text_disabled">#FF5E6E6D</color>
+    <color name="log_accent">#B26A00</color>
+    <color name="log_tag_bg">#1AB26A00</color>
+    <!-- Surface 容器色阶：让弹窗、浮层有明确的明暗层次 -->
+    <color name="md_surface_container_lowest">#FFFFFF</color>
+    <color name="md_surface_container_low">#F4F8F7</color>
+    <color name="md_surface_container">#EEF4F3</color>
+    <color name="md_surface_container_high">#E7EFEE</color>
+    <color name="md_surface_container_highest">#DFE9E8</color>
+    <color name="md_surface_bright">#FAFDFC</color>
+    <color name="md_surface_dim">#D4DFDE</color>
+    <color name="md_divider">#14000000</color>
 </resources>

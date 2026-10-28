@@ -21,8 +21,6 @@
             app:title="人员管理"
             app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
             android:background="@android:color/transparent" />
-
-        <!-- FrameLayout 加上防裁剪属性 -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -52,6 +50,7 @@
 
             <TextView
                 android:id="@+id/tv_empty"
+                android:elevation="12dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"

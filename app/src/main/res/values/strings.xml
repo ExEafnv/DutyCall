@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">DutyCall</string>
+    <string name="accessibility_service_description">用于在值班人员解锁手机时立即检查当天的排班并自动完成呼叫转移。本服务不读取屏幕内容，只接收系统的解锁/界面切换事件。</string>
 </resources>

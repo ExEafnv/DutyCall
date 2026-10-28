@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色弹窗里的内嵌区块：比底板亮一档，用来区分内容层级 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#2B3434" />
+    <corners android:radius="14dp" />
+</shape>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 次级操作：实心浅绿药丸，用于「取消」「上一步」这类按钮 -->
+    <style name="Widget.DutyCall.Button.Secondary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/btn_secondary</item>
+        <item name="android:textColor">@color/btn_secondary_text</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- 危险操作：浅红底 + 红字 -->
+    <style name="Widget.DutyCall.Button.Destructive" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/destructive_bg</item>
+        <item name="android:textColor">?attr/colorError</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- 主操作：深青实心 -->
+    <style name="Widget.DutyCall.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/action_bg</item>
+        <item name="android:textColor">@color/action_text</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+</resources>

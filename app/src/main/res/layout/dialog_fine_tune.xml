@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -29,12 +33,14 @@
                 android:textColor="?android:attr/textColorPrimary" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_m_minus"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                android:textColor="@color/btn_secondary_text"
+                app:backgroundTint="@color/btn_secondary"
+                app:cornerRadius="12dp"
                 android:text="-"
                 android:textSize="20sp" />
             <TextView
@@ -47,12 +53,14 @@
                 android:textStyle="bold" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_m_plus"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                android:textColor="@color/btn_secondary_text"
+                app:backgroundTint="@color/btn_secondary"
+                app:cornerRadius="12dp"
                 android:text="+"
                 android:textSize="20sp" />
         </LinearLayout>
@@ -73,12 +81,14 @@
                 android:textColor="?android:attr/textColorPrimary" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_w_minus"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                android:textColor="@color/btn_secondary_text"
+                app:backgroundTint="@color/btn_secondary"
+                app:cornerRadius="12dp"
                 android:text="-"
                 android:textSize="20sp" />
             <TextView
@@ -91,12 +101,14 @@
                 android:textStyle="bold" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_w_plus"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                android:textColor="@color/btn_secondary_text"
+                app:backgroundTint="@color/btn_secondary"
+                app:cornerRadius="12dp"
                 android:text="+"
                 android:textSize="20sp" />
         </LinearLayout>
@@ -116,12 +128,14 @@
                 android:textColor="?android:attr/textColorPrimary" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_d_minus"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                android:textColor="@color/btn_secondary_text"
+                app:backgroundTint="@color/btn_secondary"
+                app:cornerRadius="12dp"
                 android:text="-"
                 android:textSize="20sp" />
             <TextView
@@ -134,12 +148,14 @@
                 android:textStyle="bold" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_d_plus"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                android:textColor="@color/btn_secondary_text"
+                app:backgroundTint="@color/btn_secondary"
+                app:cornerRadius="12dp"
                 android:text="+"
                 android:textSize="20sp" />
         </LinearLayout>
@@ -148,7 +164,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="提示：增加偏移量相当于把轮班进度快进或倒退。"
+            android:lineSpacingExtra="3dp"
+            android:text="说明：偏移量直接作用于排班公式里的 d（天）、w（周）、m（月）三个变量。通用每周轮转模式只受「起始周偏移」影响。"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:lineSpacingExtra="3dp"
+            android:text="注意：如果自定义公式没有用到对应变量（例如只写了 w，完全没写 d），那么调整该项不会有任何变化——这是正常的，不是失效。"
             android:textSize="12sp"
             android:textColor="?android:attr/textColorSecondary" />
 
@@ -163,15 +189,11 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_cancel"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.DutyCall.Button.Secondary"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:minWidth="100dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:text="取消"
-            android:textColor="?attr/colorPrimary"
-            app:strokeColor="?attr/colorOutline" />
+            android:text="取消" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_confirm"
@@ -186,3 +208,4 @@
             app:backgroundTint="@color/action_bg" />
     </LinearLayout>
 </LinearLayout>
+</ScrollView>

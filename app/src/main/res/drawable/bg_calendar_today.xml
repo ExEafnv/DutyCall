@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <solid android:color="@color/action_bg" /> <!-- 改这里 -->
-    <size android:width="40dp" android:height="40dp" />
-</shape>
+<!-- 当天标记：固定直径的圆，居中绘制，不随格子高宽比变成椭圆 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="40dp"
+        android:height="40dp"
+        android:gravity="center">
+        <shape android:shape="oval">
+            <solid android:color="@color/action_bg" />
+        </shape>
+    </item>
+</layer-list>

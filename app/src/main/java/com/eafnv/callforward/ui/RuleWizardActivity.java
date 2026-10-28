@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.eafnv.callforward.R;
 import com.eafnv.callforward.data.AppDatabase;
+import com.eafnv.callforward.data.Formula;
 import com.eafnv.callforward.data.Person;
 import com.eafnv.callforward.data.ScheduleEngine;
 import com.eafnv.callforward.data.ScheduleMode;
@@ -35,6 +36,11 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * 新建排班规则的四步向导：选择模式、设置锚点、选择生效日期、预览并保存。
+ *
+ * 预览复用排班页的适配器与计算逻辑，保证两处结果一致。
+ */
 public class RuleWizardActivity extends AppCompatActivity {
 
     private static final String PREFS = "duty_prefs";
@@ -45,7 +51,8 @@ public class RuleWizardActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private List<Person> people = new ArrayList<>();
 
-    private int step = 0; // 0..3
+    // 当前步骤，取值 0 到 3。
+    private int step = 0;
     private long anchorPersonId = -1;
     private LocalDate effectiveDate;
 
@@ -55,15 +62,26 @@ public class RuleWizardActivity extends AppCompatActivity {
     private TextView tvStepTitle, tvStepHint, tvAnchorValue, tvEffectiveValue, tvFairness;
     private RadioGroup rgMode;
     private LinearLayout layoutCustomParams;
+    private LinearLayout layoutPickFormula;
+    private TextView tvSelectedFormulaName, tvSelectedFormulaExpr;
     private com.google.android.material.textfield.TextInputEditText etFormula;
+    private com.google.android.material.textfield.TextInputEditText etFormulaName;
     private Button btnPrev, btnNext;
 
+    // 已选中的公式库条目。
+    private long pickedFormulaId = 0;
+    private String pickedFormulaName = "";
+    private String pickedFormulaExpr = "";
+
+    private androidx.activity.result.ActivityResultLauncher<android.content.Intent> formulaPicker;
+
+    /** 初始化向导页面、步骤控件与公式选择器。 */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rule_wizard);
 
-        // 修复状态栏
+        // ===== 状态栏 =====
         boolean isDarkMode = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES;
         androidx.core.view.WindowInsetsControllerCompat controller = androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         if (controller != null) {
@@ -88,15 +106,36 @@ public class RuleWizardActivity extends AppCompatActivity {
         tvFairness = findViewById(R.id.tv_fairness);
         rgMode = findViewById(R.id.rg_mode);
         layoutCustomParams = findViewById(R.id.layout_custom_params);
+        layoutPickFormula = findViewById(R.id.layout_pick_formula);
+        tvSelectedFormulaName = findViewById(R.id.tv_selected_formula_name);
+        tvSelectedFormulaExpr = findViewById(R.id.tv_selected_formula_expr);
         etFormula = findViewById(R.id.et_formula);
+        etFormulaName = findViewById(R.id.et_formula_name);
         etFormula.setText("mod(d, N) + 1");
 
-        // 绑定说明弹窗
+        // 公式库返回后记录所选条目并刷新展示。
+        formulaPicker = registerForActivityResult(
+                new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() != RESULT_OK || result.getData() == null) return;
+                    pickedFormulaId = result.getData().getLongExtra(FormulaActivity.EXTRA_ID, 0);
+                    pickedFormulaName = result.getData().getStringExtra(FormulaActivity.EXTRA_NAME);
+                    pickedFormulaExpr = result.getData().getStringExtra(FormulaActivity.EXTRA_EXPR);
+                    renderPickedFormula();
+                });
+
+        findViewById(R.id.row_pick_formula).setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(this, FormulaActivity.class);
+            intent.putExtra(FormulaActivity.EXTRA_PICK, true);
+            formulaPicker.launch(intent);
+        });
+
+        // 绑定公式语法帮助弹窗。
         findViewById(R.id.tv_formula_help).setOnClickListener(v -> {
             View helpView = LayoutInflater.from(this).inflate(R.layout.dialog_formula_help, null);
             MaterialButton btnClose = helpView.findViewById(R.id.btn_close_help);
 
-            AlertDialog helpDialog = new MaterialAlertDialogBuilder(this)
+            AlertDialog helpDialog = new com.eafnv.callforward.ui.DutyDialogBuilder(this)
                     .setTitle("公式语法指南")
                     .setView(helpView)
                     .setPositiveButton(null, null)
@@ -111,23 +150,23 @@ public class RuleWizardActivity extends AppCompatActivity {
         btnNext = findViewById(R.id.btn_next);
 
         rgMode.setOnCheckedChangeListener((g, id) -> {
-            boolean isCustom = (id == R.id.rb_custom);
-            layoutCustomParams.setVisibility(isCustom ? View.VISIBLE : View.GONE);
+            boolean isNew = (id == R.id.rb_formula_new);
+            boolean isPick = (id == R.id.rb_formula_pick);
+            layoutCustomParams.setVisibility(isNew ? View.VISIBLE : View.GONE);
+            layoutPickFormula.setVisibility(isPick ? View.VISIBLE : View.GONE);
 
             android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
 
-            // 如果选中了自定义公式，自动全选默认公式，并延迟弹出键盘
-            if (isCustom) {
+            // 新建公式时自动选中默认表达式并弹出键盘。
+            if (isNew) {
                 etFormula.requestFocus();
                 etFormula.selectAll();
-                // 延迟 200 毫秒，等待布局渲染完成后弹出键盘
                 etFormula.postDelayed(() -> {
                     if (imm != null) {
                         imm.showSoftInput(etFormula, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
                     }
                 }, 200);
             } else {
-                // 如果切回其他模式，把键盘收起来
                 if (imm != null) {
                     imm.hideSoftInputFromWindow(etFormula.getWindowToken(), 0);
                 }
@@ -142,13 +181,21 @@ public class RuleWizardActivity extends AppCompatActivity {
         recycler.setLayoutManager(new LinearLayoutManager(this));
         recycler.setAdapter(previewAdapter);
 
-        btnPrev.setOnClickListener(v -> { if (step > 0) { step--; renderStep(); } });
+        btnPrev.setOnClickListener(v -> {
+            if (step > 0) {
+                step--;
+                renderStep();
+            } else {
+                finish();
+            }
+        });
         btnNext.setOnClickListener(v -> onNext());
 
         effectiveDate = LocalDate.now();
         loadPeople();
     }
 
+    /** 异步加载人员，名单为空时提示并退出向导。 */
     private void loadPeople() {
         io.execute(() -> {
             List<Person> list = db.personDao().getAll();
@@ -164,19 +211,21 @@ public class RuleWizardActivity extends AppCompatActivity {
         });
     }
 
+    /** 按当前步骤切换面板、按钮文案与标题提示。 */
     private void renderStep() {
         stepMode.setVisibility(step == 0 ? View.VISIBLE : View.GONE);
         stepAnchor.setVisibility(step == 1 ? View.VISIBLE : View.GONE);
         stepEffective.setVisibility(step == 2 ? View.VISIBLE : View.GONE);
         stepPreview.setVisibility(step == 3 ? View.VISIBLE : View.GONE);
 
-        btnPrev.setEnabled(step > 0);
+        // 第 1 步没有“上一步”，做成“取消”直接退出，避免出现禁用态按钮。
+        btnPrev.setText(step == 0 ? "取消" : "上一步");
         btnNext.setText(step == 3 ? "保存规则" : "下一步");
 
         switch (step) {
             case 0:
                 tvStepTitle.setText("第 1 步：选择轮转模式");
-                tvStepHint.setText("两种模式互斥，选一个最符合班组习惯的。");
+                tvStepHint.setText("三种方式互斥，选一个最符合班组习惯的。");
                 break;
             case 1:
                 tvStepTitle.setText("第 2 步：设置锚点");
@@ -196,6 +245,7 @@ public class RuleWizardActivity extends AppCompatActivity {
         }
     }
 
+    /** 从人员列表中选择锚点。 */
     private void pickAnchor() {
         android.view.View view = android.view.LayoutInflater.from(this).inflate(R.layout.dialog_single_choice, null);
         android.widget.RadioGroup rg = view.findViewById(R.id.rg_choices);
@@ -205,18 +255,19 @@ public class RuleWizardActivity extends AppCompatActivity {
         int checkedId = -1;
         for (int i = 0; i < people.size(); i++) {
             android.widget.RadioButton rb = new android.widget.RadioButton(this);
-            rb.setId(i);
+            // 注意：控件编号不能为 0（0 等于 View.NO_ID，单选组会判定为“未选中”）。
+            rb.setId(i + 1);
             rb.setTextSize(16);
             rb.setPadding(0, 24, 0, 24);
             rb.setText(people.get(i).name);
             if (people.get(i).id == anchorPersonId) {
-                checkedId = i;
+                checkedId = i + 1;
             }
             rg.addView(rb);
         }
         if (checkedId != -1) rg.check(checkedId);
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new com.eafnv.callforward.ui.DutyDialogBuilder(this)
                 .setTitle("从谁开始")
                 .setView(view)
                 .setPositiveButton(null, null)
@@ -229,12 +280,14 @@ public class RuleWizardActivity extends AppCompatActivity {
             int selectedId = rg.getCheckedRadioButtonId();
             if (selectedId != -1) {
                 dialog.dismiss();
-                anchorPersonId = people.get(selectedId).id;
-                tvAnchorValue.setText(people.get(selectedId).name);
+                int index = selectedId - 1;
+                anchorPersonId = people.get(index).id;
+                tvAnchorValue.setText(people.get(index).name);
             }
         });
     }
 
+    /** 选择规则生效日期。 */
     private void pickEffective() {
         new DatePickerDialog(this, (view, y, m, d) -> {
             effectiveDate = LocalDate.of(y, m + 1, d);
@@ -242,6 +295,7 @@ public class RuleWizardActivity extends AppCompatActivity {
         }, effectiveDate.getYear(), effectiveDate.getMonthValue() - 1, effectiveDate.getDayOfMonth()).show();
     }
 
+    /** 校验当前步骤，通过后进入下一步或保存。 */
     private void onNext() {
         if (!validateCurrent()) return;
         if (step < 3) {
@@ -252,20 +306,30 @@ public class RuleWizardActivity extends AppCompatActivity {
         }
     }
 
+    /** 校验当前步骤的输入，返回是否允许前进。 */
     private boolean validateCurrent() {
         if (step == 0) {
-            if (rgMode.getCheckedRadioButtonId() == R.id.rb_custom) {
+            int checked = rgMode.getCheckedRadioButtonId();
+            if (checked == R.id.rb_formula_pick) {
+                if (pickedFormulaId <= 0) {
+                    Toast.makeText(this, "请先选择一条公式", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                String error = ScheduleEngine.validateFormula(pickedFormulaExpr, people.size());
+                if (error != null) {
+                    showErrorDialog(error);
+                    return false;
+                }
+            } else if (checked == R.id.rb_formula_new) {
                 String formula = etFormula.getText().toString().trim();
                 if (TextUtils.isEmpty(formula)) {
                     Toast.makeText(this, "自定义公式不能为空", Toast.LENGTH_SHORT).show();
                     return false;
                 }
-
-                // 调用引擎进行校验
                 String errorMsg = ScheduleEngine.validateFormula(formula, people.size());
                 if (errorMsg != null) {
                     showErrorDialog(errorMsg);
-                    return false; // 拦截，不进入下一步
+                    return false;
                 }
             }
             return true;
@@ -280,9 +344,9 @@ public class RuleWizardActivity extends AppCompatActivity {
         return true;
     }
 
-    // 显示错误弹窗
+    /** 展示公式解析错误详情。 */
     private void showErrorDialog(String errorMessage) {
-        // 用一个带滚动的 TextView 来展示可能很长的报错
+        // 用带滚动的 TextView 展示可能很长的报错。
         android.widget.TextView tv = new android.widget.TextView(this);
         tv.setText("公式解析失败：\n\n" + errorMessage);
         tv.setPadding(60, 40, 60, 0);
@@ -294,28 +358,43 @@ public class RuleWizardActivity extends AppCompatActivity {
         scrollView.addView(tv);
         scrollView.setPadding(0, 0, 0, 20);
 
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        new com.eafnv.callforward.ui.DutyDialogBuilder(this)
                 .setTitle("公式有误")
                 .setView(scrollView)
                 .setPositiveButton("返回修改", null)
                 .show();
     }
 
+    /** 返回当前选择的排班模式。 */
     private int selectedMode() {
         int id = rgMode.getCheckedRadioButtonId();
-        if (id == R.id.rb_custom) return ScheduleMode.CUSTOM;
-        return ScheduleMode.WEEKLY;
+        if (id == R.id.rb_weekly) return ScheduleMode.WEEKLY;
+        return ScheduleMode.CUSTOM;
     }
 
+    /** 返回当前模式下要保存的公式表达式。 */
     private String buildExtraParams() {
         if (selectedMode() == ScheduleMode.CUSTOM) {
+            if (rgMode.getCheckedRadioButtonId() == R.id.rb_formula_pick) {
+                return pickedFormulaExpr;
+            }
             return etFormula.getText().toString().trim();
         }
         return null;
     }
 
+    /** 刷新已选公式的名称与表达式展示。 */
+    private void renderPickedFormula() {
+        boolean has = pickedFormulaId > 0;
+        tvSelectedFormulaName.setText(has
+                ? (pickedFormulaName == null || pickedFormulaName.isEmpty() ? "未命名公式" : pickedFormulaName)
+                : "未选择公式");
+        tvSelectedFormulaExpr.setText(has && pickedFormulaExpr != null ? pickedFormulaExpr : "");
+    }
+
+    /** 刷新未来 28 天的预览，并统计每人的值班天数。 */
     private void refreshPreview() {
-        // 每次刷新预览都读取最新偏移量，保证和首页 / 排班页一致
+        // 每次刷新预览都读取最新偏移量，保证与首页、排班页一致。
         int offsetM = prefs.getInt("offset_m", 0);
         int offsetW = prefs.getInt("offset_w", 0);
         int offsetD = prefs.getInt("offset_d", 0);
@@ -348,6 +427,7 @@ public class RuleWizardActivity extends AppCompatActivity {
         tvFairness.setText(sb.toString());
     }
 
+    /** 构造仅用于预览的临时排班版本。 */
     private ScheduleVersion buildVersionForPreview() {
         ScheduleVersion v = new ScheduleVersion();
         v.mode = selectedMode();
@@ -357,12 +437,28 @@ public class RuleWizardActivity extends AppCompatActivity {
         return v;
     }
 
+    /** 保存排班版本，并把新建的自定义公式同步写入公式库。 */
     private void save() {
         ScheduleVersion v = buildVersionForPreview();
         v.effectiveFromEpochDay = effectiveDate.toEpochDay();
         v.createdAt = System.currentTimeMillis();
 
+        final int checked = rgMode.getCheckedRadioButtonId();
+        if (checked == R.id.rb_formula_pick) {
+            v.formulaId = pickedFormulaId;
+            v.formulaRemark = pickedFormulaName;
+        } else if (checked == R.id.rb_formula_new) {
+            v.formulaId = 0;
+            v.formulaRemark = etFormulaName.getText().toString().trim();
+        }
+
         io.execute(() -> {
+            // 新建的公式顺手存进公式库，方便以后复用。
+            if (checked == R.id.rb_formula_new
+                    && v.formulaRemark != null && !v.formulaRemark.isEmpty()
+                    && v.extraParams != null && !v.extraParams.isEmpty()) {
+                db.formulaDao().insert(new Formula(v.formulaRemark, v.extraParams, System.currentTimeMillis()));
+            }
             db.scheduleDao().insertVersion(v);
             runOnUiThread(() -> {
                 Toast.makeText(this, "规则已保存", Toast.LENGTH_SHORT).show();
@@ -372,6 +468,7 @@ public class RuleWizardActivity extends AppCompatActivity {
         });
     }
 
+    /** 按人员编号查找姓名，找不到时返回占位符。 */
     private String nameOf(long id) {
         int idx = ScheduleEngine.indexOf(people, id);
         return idx < 0 ? "—" : people.get(idx).name;

@@ -1,6 +1,9 @@
 <resources>
     <style name="Theme.DutyCall" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/app_bg</item>
+        <item name="actionBarSize">56dp</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
         <item name="materialButtonStyle">@style/Widget.Material3.Button</item>
         <item name="colorOnPrimary">@color/md_on_primary</item>
         <item name="colorOnPrimaryContainer">@color/md_on_primary_container</item>
@@ -12,7 +15,13 @@
         <item name="colorOnSecondaryContainer">@color/md_on_secondary_container</item>
         <item name="colorSurface">@color/md_surface</item>
         <item name="colorOnSurface">@color/md_on_surface</item>
-        <item name="colorSurfaceVariant">@color/md_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/md_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/md_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/md_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/md_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/md_surface_container_highest</item>
+        <item name="colorSurfaceBright">@color/md_surface_bright</item>
+        <item name="colorSurfaceDim">@color/md_surface_dim</item>        <item name="colorSurfaceVariant">@color/md_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/md_on_surface_variant</item>
         <item name="colorOutline">@color/md_outline</item>
         <item name="colorError">@color/md_error</item>

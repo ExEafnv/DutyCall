@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底板用 shape drawable 画：MaterialCardView 会在背景上叠一层白，深色模式下颜色压不住 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog"
+    android:orientation="vertical"
+    android:paddingBottom="20dp">
+
+    <!-- 标题：日期 + 星期，作为整个弹窗的视觉起点 -->
+    <TextView
+        android:id="@+id/tv_detail_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="22dp"
+        android:text="10月22日 星期四"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="21sp"
+        android:textStyle="bold" />
+
+    <!-- 值班人：主信息块 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当天值班人"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tv_detail_person"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="—"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_detail_override"
+            style="@style/Widget.DutyCall.Button.Secondary"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="12dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="16dp"
+            android:text="临时换人"
+            android:textSize="13sp"
+            app:cornerRadius="18dp" />
+    </LinearLayout>
+
+    <!-- 日志：内嵌区块，和上面形成层次 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_dialog_inset"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="当天日志"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="12sp" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:maxHeight="200dp">
+
+            <TextView
+                android:id="@+id/tv_detail_log"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="5dp"
+                android:text="还没有日志"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="14sp" />
+        </ScrollView>
+    </LinearLayout>
+
+    <!-- 操作区：主次分明 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_detail_close"
+            style="@style/Widget.DutyCall.Button.Secondary"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:text="关闭" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_detail_edit"
+            style="@style/Widget.DutyCall.Button.Primary"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:text="编辑日志" />
+    </LinearLayout>
+
+</LinearLayout>

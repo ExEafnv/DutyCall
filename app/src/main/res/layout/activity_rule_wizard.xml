@@ -38,8 +38,7 @@
                 android:layout_marginTop="6dp"
                 android:textSize="13sp"
                 android:textColor="?android:attr/textColorSecondary" />
-
-            <!-- Step 1：模式 -->
+<!-- Step 1：模式 -->
             <LinearLayout
                 android:id="@+id/step_mode"
                 android:layout_width="match_parent"
@@ -56,27 +55,112 @@
                         android:id="@+id/rb_weekly"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:minHeight="64dp"
+                        android:gravity="center_vertical"
                         android:checked="true"
                         android:text="通用每周轮转（适合任意人数）" />
 
                     <RadioButton
-                        android:id="@+id/rb_custom"
+                        android:id="@+id/rb_formula_pick"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="自定义公式（高级）" />
+                        android:minHeight="64dp"
+                        android:gravity="center_vertical"
+                        android:text="选择已保存的公式" />
+
+                    <RadioButton
+                        android:id="@+id/rb_formula_new"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="64dp"
+                        android:gravity="center_vertical"
+                        android:text="新建自定义公式（高级）" />
                 </RadioGroup>
 
+                <!-- 选择已保存的公式 -->
+                <LinearLayout
+                    android:id="@+id/layout_pick_formula"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/row_pick_formula"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:minHeight="56dp"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="4dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tv_selected_formula_name"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="未选择公式"
+                                android:textColor="?android:attr/textColorPrimary"
+                                android:textSize="15sp" />
+
+                            <TextView
+                                android:id="@+id/tv_selected_formula_expr"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:ellipsize="end"
+                                android:fontFamily="monospace"
+                                android:maxLines="1"
+                                android:textColor="?android:attr/textColorSecondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="选择"
+                            android:textColor="@color/md_primary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 新建自定义公式 -->
                 <LinearLayout
                     android:id="@+id/layout_custom_params"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="8dp"
                     android:visibility="gone">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/til_formula_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="备注（方便以后认出这条公式）">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_formula_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"
+                            android:maxLength="24" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
                         android:hint="输入自定义公式">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -88,7 +172,6 @@
                             android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- 替换为这里 -->
                     <TextView
                         android:id="@+id/tv_formula_help"
                         android:layout_width="match_parent"
@@ -192,15 +275,17 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <com.google.android.material.button.MaterialButton
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_prev"
-            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
+            android:background="@drawable/btn_secondary_bg"
+            android:stateListAnimator="@null"
             android:text="上一步"
-            android:textColor="?attr/colorPrimary"
-            app:strokeColor="?attr/colorOutline" />
+            android:textAllCaps="false"
+            android:textColor="@color/btn_secondary_text_state"
+            android:textSize="14sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_next"
@@ -208,9 +293,12 @@
             android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_marginStart="12dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
             android:text="下一步"
             android:textColor="@color/action_text"
-            app:backgroundTint="@color/action_bg" />
+            app:backgroundTint="@color/action_bg"
+            app:cornerRadius="24dp" />
     </LinearLayout>
 
 </LinearLayout>

@@ -1,15 +1,71 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# ===== 构建产物（不要提交）=====
+# Gradle 缓存与各模块 build 目录
+.gradle/
+build/
+app/build/
+*/build/
+# 打包输出目录：含签名后的 apk / aab 与 output-metadata.json
+app/release/
+/release/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+# 原生构建
+.externalNativeBuild/
+.cxx/
+obj/
+# 调试与报告产物
+*.hprof
+*.log
+captures/
+lint-results*.xml
+lint-results*.html
+lint-results*.sarif
+baselineProfiles/
+
+# ===== 本机配置与签名（绝对不要提交）=====
 local.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+keystore.properties
+signing.properties
+/signing/
+
+# ===== Android Studio / IntelliJ =====
+*.iml
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/shelf/
+.idea/httpRequests/
+.idea/usage.statistics.xml
+.idea/deploymentTargetDropDown.xml
+.idea/deviceManager.xml
+.navigation/
+
+# ===== 系统与编辑器杂项 =====
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.~*
+.vscode/
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# ===== 调试过程中产生的临时文件 =====
+# uiautomator dump、adb 抓取的日志、偏好导出等
+d.xml
+t.xml
+prefs.xml
+mmi_log.txt

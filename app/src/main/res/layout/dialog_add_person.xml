@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -66,40 +70,23 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_delete"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.DutyCall.Button.Destructive"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:minWidth="80dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
-            android:paddingLeft="0dp"
-            android:paddingRight="0dp"
             android:text="删除"
             android:textSize="14sp"
-            android:textColor="?attr/colorError"
-            app:strokeColor="?attr/colorError"
             android:visibility="gone" />
 
-        <!-- 取消按钮改为轮廓样式，使用主题描边色 -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_cancel"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.DutyCall.Button.Secondary"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_marginStart="8dp"
             android:minWidth="80dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
-            android:paddingLeft="0dp"
-            android:paddingRight="0dp"
             android:text="取消"
-            android:textSize="14sp"
-            android:textColor="?attr/colorPrimary"
-            app:strokeColor="?attr/colorOutline" />
+            android:textSize="14sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save"
@@ -121,3 +108,4 @@
     </LinearLayout>
 
 </LinearLayout>
+</ScrollView>
