@@ -570,7 +570,16 @@ public class MainActivity extends AppCompatActivity {
                         o.personId = people.get(index - 1).id;
                         db.scheduleDao().upsertOverride(o);
                     }
-                    runOnUiThread(this::loadData);
+                    // 改的是今天：立刻按新的当天值班人补一次转移，免得电话还转给上一个人
+                    final Person target =
+                            com.eafnv.callforward.mmi.TodayOverrideSync.personToTransfer(this, item.date);
+                    runOnUiThread(() -> {
+                        loadData();
+                        if (target != null) {
+                            runTransfer(MmiExecutor.setCode(target.phoneNumber), true,
+                                    target.name, target.phoneNumber, false);
+                        }
+                    });
                 });
             }
         });

@@ -4,7 +4,9 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.Manifest;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -12,6 +14,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,6 +26,7 @@ import com.eafnv.callforward.data.Person;
 import com.eafnv.callforward.data.ScheduleEngine;
 import com.eafnv.callforward.data.ScheduleMode;
 import com.eafnv.callforward.data.ScheduleVersion;
+import com.eafnv.callforward.mmi.MmiExecutor;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.time.LocalDate;
@@ -38,11 +43,15 @@ import java.util.concurrent.Executors;
 public class ScheduleActivity extends AppCompatActivity {
 
     private static final String PREFS = "duty_prefs";
+    /** 申请拨号权限的请求码。 */
+    private static final int REQ_CALL_PHONE = 2102;
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private AppDatabase db;
     private SharedPreferences prefs;
     private SchedulePreviewAdapter adapter;
+    /** 等待权限授予后再补发的转移目标。 */
+    private Person pendingTransfer;
 
     // 排班偏移量，每次加载数据时从偏好设置重新读取。
     private int offsetM = 0, offsetW = 0, offsetD = 0;
@@ -495,10 +504,56 @@ public class ScheduleActivity extends AppCompatActivity {
                         o.personId = people.get(index - 1).id;
                         db.scheduleDao().upsertOverride(o);
                     }
-                    runOnUiThread(this::renderPreview);
+                    // 改的是今天：立刻按新的当天值班人补一次转移
+                    final Person target =
+                            com.eafnv.callforward.mmi.TodayOverrideSync.personToTransfer(this, row.date);
+                    runOnUiThread(() -> {
+                        renderPreview();
+                        transferAfterOverride(target);
+                    });
                 });
             }
         });
+    }
+
+    /**
+     * 临时换人后立即转移；没拿到拨号权限就先申请，授予后自动补发。
+     *
+     * @param person 新的当天值班人，null 表示今天没人，不需要转移
+     */
+    private void transferAfterOverride(Person person) {
+        if (person == null) return;
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
+                != PackageManager.PERMISSION_GRANTED) {
+            pendingTransfer = person;
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CALL_PHONE}, REQ_CALL_PHONE);
+            return;
+        }
+        dispatchTransfer(person);
+    }
+
+    /** 把转移指令交给执行器；忙时提示稍候，不并发下发。 */
+    private void dispatchTransfer(Person person) {
+        if (MmiExecutor.isBusy()) {
+            Toast.makeText(this, "正在执行上一条指令，请稍候", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        MmiExecutor.execute(this, MmiExecutor.setCode(person.phoneNumber), true,
+                person.name, person.phoneNumber, false, false);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQ_CALL_PHONE) return;
+        Person pending = pendingTransfer;
+        pendingTransfer = null;
+        if (pending != null && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            dispatchTransfer(pending);
+        }
     }
 
     /** 返回排班模式对应的展示名称。 */
