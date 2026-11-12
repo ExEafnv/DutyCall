@@ -1,10 +1,20 @@
-*.iml
-.gradle
-/local.properties
-/.idea
-/build
-/captures
-.externalNativeBuild
-.cxx
-*.jks
-*.keystore
+# 构建产物
+.gradle/  build/  app/build/  */build/
+app/release/  /release/  *.apk  *.aab  *.ap_  *.dex  *.class
+.externalNativeBuild/  .cxx/  obj/
+*.hprof  *.log  captures/  lint-results*
+baselineProfiles/
+
+# 本机配置与签名
+local.properties  *.jks  *.keystore  *.p12  *.pem
+keystore.properties  signing.properties  /signing/
+
+# Android Studio
+*.iml  .idea/caches/  .idea/libraries/  .idea/modules.xml
+.idea/workspace.xml  .idea/navEditor.xml  .idea/shelf/ …
+
+# 系统/编辑器杂项
+.DS_Store  Thumbs.db  desktop.ini  *.swp  .vscode/  *.tmp  *.bak …
+
+# 调试临时文件
+d.xml  t.xml  prefs.xml  mmi_log.txt
